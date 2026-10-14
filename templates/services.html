@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Services — {{ clinic.name }}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow reveal">Our Services</span>
+    <h1 class="reveal">Treatments tailored to <em>you</em></h1>
+    <p class="lead reveal">From essential consultations to advanced rejuvenation, discover a full range of services designed for every skin type.</p>
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+    <div class="filter-bar reveal">
+      <button class="filter-btn active" data-filter="all">All</button>
+      {% for cat in categories %}<button class="filter-btn" data-filter="{{ cat }}">{{ cat }}</button>{% endfor %}
+    </div>
+    <div class="services-grid" id="servicesGrid">
+      {% for service in services %}
+      <article class="service-card service-full reveal" data-category="{{ service.category }}">
+        <div class="service-icon">{{ service.icon }}</div>
+        <div class="service-body">
+          <div class="service-card-header"><h3>{{ service.name }}</h3><span class="price-tag">${{ service.price }}</span></div>
+          <p>{{ service.description }}</p>
+          <div class="service-footer"><span class="duration">⏱ {{ service.duration }}</span><a href="{{ url_for('booking') }}?service={{ service.name | urlencode }}" class="btn btn-primary btn-small">Book Now</a></div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+<section class="section section-alt">
+  <div class="container"><div class="cta-banner reveal"><div><h2>Not sure which treatment is right?</h2><p>Book a complimentary consultation and we'll create a personalized plan.</p></div><a href="{{ url_for('booking') }}" class="btn btn-light">Book Consultation</a></div></div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const filter = this.dataset.filter;
+    document.querySelectorAll('#servicesGrid .service-card').forEach(card => {
+      if (filter === 'all' || card.dataset.category === filter) { card.style.display = ''; card.classList.add('reveal'); }
+      else { card.style.display = 'none'; }
+    });
+  });
+});
+</script>
+{% endblock %}

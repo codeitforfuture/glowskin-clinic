@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ clinic.name }} — Luxury Skin Care Clinic{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
+</head>
+<body>
+<div class="page-loader" id="pageLoader"><div class="loader-mark">G</div></div>
+
+<header class="site-header" id="siteHeader">
+  <div class="container header-inner">
+    <a class="brand" href="{{ url_for('index') }}">
+      <span class="brand-mark">G</span>
+      <span class="brand-text"><strong>{{ clinic.name }}</strong><small>Skin Atelier</small></span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" id="siteNav">
+            <ul class="nav-links">
+        <li><a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' }}">Home</a></li>
+        <li><a href="{{ url_for('services') }}" class="{{ 'active' if request.endpoint == 'services' }}">Services</a></li>
+        <li><a href="{{ url_for('about') }}" class="{{ 'active' if request.endpoint == 'about' }}">About</a></li>
+
+        {% if session.get('admin_logged_in') %}
+          <li><a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if request.endpoint == 'admin_dashboard' }}">Dashboard</a></li>
+        {% elif current_user %}
+          <li><a href="{{ url_for('my_bookings') }}" class="{{ 'active' if request.endpoint == 'my_bookings' }}">My Bookings</a></li>
+        {% else %}
+          <li><a href="{{ url_for('my_bookings') }}" class="{{ 'active' if request.endpoint == 'my_bookings' }}">Track Booking</a></li>
+        {% endif %}
+      </ul>
+
+            <div class="nav-actions">
+        {% if session.get('admin_logged_in') %}
+          <a class="btn btn-outline btn-small" href="{{ url_for('admin_logout') }}">Logout</a>
+        {% elif current_user %}
+          <span class="user-greeting">Hi, {{ current_user.name.split()[0] }}</span>
+          <a class="btn btn-outline btn-small" href="{{ url_for('user_logout') }}">Logout</a>
+          <a class="btn btn-primary btn-small" href="{{ url_for('booking') }}">Book Now</a>
+        {% else %}
+          <a class="btn btn-outline btn-small" href="{{ url_for('user_login') }}">Login</a>
+          <a class="btn btn-primary btn-small" href="{{ url_for('booking') }}">Book Now</a>
+        {% endif %}
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container flash-stack">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}" role="status">
+            <span>{{ message }}</span>
+            <button type="button" class="flash-close" aria-label="Dismiss">&times;</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-col footer-brand">
+      <a class="brand" href="{{ url_for('index') }}">
+        <span class="brand-mark">G</span>
+        <span class="brand-text"><strong>{{ clinic.name }}</strong><small>Skin Atelier</small></span>
+      </a>
+      <p>{{ clinic.tagline }}</p>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <ul>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('services') }}">Services</a></li>
+        <li><a href="{{ url_for('about') }}">About</a></li>
+        <li><a href="{{ url_for('booking') }}">Book Appointment</a></li>
+        <li><a href="{{ url_for('my_bookings') }}">My Bookings</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Visit Us</h4>
+      <ul class="contact-list">
+        <li>{{ clinic.address }}</li>
+        <li><a href="tel:{{ clinic.phone | replace(' ', '') }}">{{ clinic.phone }}</a></li>
+        <li><a href="mailto:{{ clinic.email }}">{{ clinic.email }}</a></li>
+        <li>{{ clinic.hours }}</li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Account</h4>
+      <ul>
+        {% if session.get('user_id') %}
+          <li><a href="{{ url_for('my_bookings') }}">My Bookings</a></li>
+          <li><a href="{{ url_for('user_logout') }}">Logout</a></li>
+        {% else %}
+          <li><a href="{{ url_for('user_login') }}">Login</a></li>
+          <li><a href="{{ url_for('user_signup') }}">Sign Up</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('admin_login') }}">Staff Login</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <p>&copy; {{ current_year }} {{ clinic.name }} Skin Atelier. All rights reserved.</p>
+  </div>
+</footer>
+<button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}About — {{ clinic.name }}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow reveal">About Us</span>
+    <h1 class="reveal">Where science meets <em>serenity</em></h1>
+    <p class="lead reveal">Founded in {{ clinic.established }}, GlowSkin has become a destination for those seeking real results in a calm, welcoming environment.</p>
+  </div>
+</section>
+<section class="section">
+  <div class="container about-grid">
+    <div class="about-content reveal">
+      <span class="eyebrow">Our Story</span>
+      <h2>A decade of expertise</h2>
+      <p>GlowSkin was born from a simple belief: everyone deserves healthy, radiant skin — and the journey should feel as good as the results.</p>
+      <p>Our clinic combines medical-grade technology with a warm, personal approach. Every treatment is performed by licensed professionals who continue their education to stay on the cutting edge of aesthetic science.</p>
+      <p>Today, we've helped over 15,000 clients rediscover their glow. Whether you're dealing with acne, aging, or simply want to maintain healthy skin, we're here for you.</p>
+    </div>
+    <div class="about-visual reveal">
+      <div class="about-stat-card"><strong>10+</strong><span>Years of Excellence</span></div>
+      <div class="about-stat-card"><strong>15k+</strong><span>Satisfied Clients</span></div>
+      <div class="about-stat-card"><strong>4.9★</strong><span>Average Rating</span></div>
+    </div>
+  </div>
+</section>
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head reveal"><span class="eyebrow">Our Values</span><h2>What we stand for</h2></div>
+    <div class="features-grid">
+      <div class="feature-card reveal"><div class="feature-icon-lg">🩺</div><h3>Integrity</h3><p>We recommend only what you need and are transparent about expected results.</p></div>
+      <div class="feature-card reveal"><div class="feature-icon-lg">🤍</div><h3>Comfort</h3><p>Your experience should feel calm, safe, and stress-free from start to finish.</p></div>
+      <div class="feature-card reveal"><div class="feature-icon-lg">⭐</div><h3>Excellence</h3><p>We hold ourselves to the highest standards in every treatment we provide.</p></div>
+      <div class="feature-card reveal"><div class="feature-icon-lg">🌱</div><h3>Innovation</h3><p>We constantly update our techniques and technology to offer the best care.</p></div>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal"><span class="eyebrow">Our Team</span><h2>Meet the specialists</h2></div>
+    <div class="team-grid">
+      <div class="team-card reveal"><div class="team-avatar">DR</div><h3>Dr. Rachel Chen</h3><p>Lead Dermatologist</p></div>
+      <div class="team-card reveal"><div class="team-avatar">AM</div><h3>Anna Martinez</h3><p>Senior Esthetician</p></div>
+      <div class="team-card reveal"><div class="team-avatar">SP</div><h3>Sofia Patel</h3><p>Skin Specialist</p></div>
+      <div class="team-card reveal"><div class="team-avatar">EW</div><h3>Emma Wilson</h3><p>Aesthetic Nurse</p></div>
+    </div>
+  </div>
+</section>
+<section class="section section-alt">
+  <div class="container"><div class="cta-banner reveal"><div><h2>Experience the GlowSkin difference</h2><p>Book your first appointment today.</p></div><a href="{{ url_for('booking') }}" class="btn btn-light">Book Now</a></div></div>
+</section>
+{% endblock %}

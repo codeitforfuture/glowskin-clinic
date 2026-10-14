@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up — {{ clinic.name }}{% endblock %}
+{% block content %}
+<section class="section auth-section">
+  <div class="container auth-container">
+    <div class="auth-card reveal">
+      <div class="auth-icon">✨</div>
+      <h1>Create Account</h1>
+      <p class="auth-sub">Sign up to book faster and track your appointments.</p>
+      <form method="POST" action="{{ url_for('user_signup') }}">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required autofocus placeholder="Jane Doe">
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" name="phone" required placeholder="+1 555 000 0000">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required minlength="6" placeholder="Min 6 chars">
+          </div>
+          <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" required minlength="6" placeholder="Repeat">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+      </form>
+      <p class="auth-note">Already have an account? <a href="{{ url_for('user_login') }}">Sign in →</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

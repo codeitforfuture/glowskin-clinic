@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — {{ clinic.name }}{% endblock %}
+{% block content %}
+<section class="section dashboard-section">
+  <div class="container">
+    <div class="dashboard-header reveal">
+      <div><span class="eyebrow">Admin</span><h1>Dashboard</h1><p>Real-time overview of your clinic's performance.</p></div>
+      <a href="{{ url_for('admin_logout') }}" class="btn btn-outline btn-small">Logout</a>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card reveal"><span class="stat-label">Today</span><span class="stat-number">{{ stats.today }}</span><span class="stat-sub">appointments today</span></div>
+      <div class="stat-card reveal"><span class="stat-label">Pending</span><span class="stat-number">{{ stats.pending }}</span><span class="stat-sub">awaiting review</span></div>
+      <div class="stat-card reveal"><span class="stat-label">Completed</span><span class="stat-number">{{ stats.completed }}</span><span class="stat-sub">all time</span></div>
+      <div class="stat-card stat-revenue reveal"><span class="stat-label">Revenue</span><span class="stat-number">${{ stats.revenue }}</span><span class="stat-sub">from completed</span></div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="charts-grid">
+      <div class="chart-card reveal">
+        <div class="chart-head"><h3>Revenue (Last 7 Days)</h3><span class="chart-badge">$ Total</span></div>
+        <canvas id="revenueChart"></canvas>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-head"><h3>Bookings (Last 7 Days)</h3><span class="chart-badge"># Count</span></div>
+        <canvas id="bookingsChart"></canvas>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card reveal">
+        <div class="chart-head"><h3>Status Breakdown</h3></div>
+        <canvas id="statusChart"></canvas>
+      </div>
+      <div class="chart-card reveal">
+        <div class="chart-head"><h3>Top Services</h3></div>
+        {% if analytics.top_services %}
+          <div class="top-services">
+            {% for s in analytics.top_services %}
+              <div class="top-service-row">
+                <div class="top-service-info">
+                  <strong>{{ s.name }}</strong>
+                  <span>{{ s.count }} bookings</span>
+                </div>
+                <div class="top-service-bar">
+                  <div class="top-service-fill" data-width="{{ ((s.count / analytics.top_services[0].count) * 100) if analytics.top_services[0].count else 0 }}"></div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted" style="padding: 40px 0; text-align: center;">No data yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- TODAY'S SCHEDULE -->
+    {% if today_schedule %}
+    <div class="dashboard-block reveal">
+      <div class="block-head"><h2>Today's Schedule</h2><span class="badge">{{ today_schedule|length }} appointments</span></div>
+      <div class="schedule-list">
+        {% for appt in today_schedule %}
+        <div class="schedule-item">
+          <div class="schedule-time">{{ appt.appointment_time }}</div>
+          <div class="schedule-info"><strong>{{ appt.name }}</strong><small>{{ appt.service }} · {{ appt.phone }}</small></div>
+          <span class="status status-{{ appt.status }}">{{ appt.status | capitalize }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ALL APPOINTMENTS -->
+    <div class="dashboard-block reveal">
+      <div class="block-head"><h2>All Appointments</h2><span class="badge">{{ stats.total }} total</span></div>
+      <form method="GET" action="{{ url_for('admin_dashboard') }}" class="filter-form">
+        <div class="filter-group">
+          <a href="{{ url_for('admin_dashboard') }}" class="filter-pill {% if status_filter == 'all' %}active{% endif %}">All</a>
+          <a href="{{ url_for('admin_dashboard', status='pending') }}" class="filter-pill {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+          <a href="{{ url_for('admin_dashboard', status='confirmed') }}" class="filter-pill {% if status_filter == 'confirmed' %}active{% endif %}">Confirmed</a>
+          <a href="{{ url_for('admin_dashboard', status='completed') }}" class="filter-pill {% if status_filter == 'completed' %}active{% endif %}">Completed</a>
+          <a href="{{ url_for('admin_dashboard', status='cancelled') }}" class="filter-pill {% if status_filter == 'cancelled' %}active{% endif %}">Cancelled</a>
+        </div>
+        <div class="search-inline"><input type="text" name="q" placeholder="Search name, phone, ref..." value="{{ search }}"><button type="submit" class="btn btn-small btn-primary">Search</button></div>
+      </form>
+      {% if appointments %}
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Ref</th><th>Patient</th><th>Contact</th><th>Service</th><th>Date & Time</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for appt in appointments %}
+            <tr>
+              <td><code class="ref-small">{{ appt.reference_code }}</code></td>
+              <td><strong>{{ appt.name }}</strong>{% if appt.user_id %} <span class="user-tag">member</span>{% endif %}</td>
+              <td>{{ appt.phone }}<br><small class="text-muted">{{ appt.email or '—' }}</small></td>
+              <td>{{ appt.service }}</td>
+              <td>{{ appt.appointment_date }}<br><small class="text-muted">{{ appt.appointment_time }}</small></td>
+              <td><span class="status status-{{ appt.status }}">{{ appt.status | capitalize }}</span></td>
+              <td>
+                <form method="POST" action="{{ url_for('update_status', appointment_id=appt.id) }}" class="status-form">
+                  <select name="status">
+                    <option value="pending" {% if appt.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="confirmed" {% if appt.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="completed" {% if appt.status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if appt.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                  </select>
+                  <button type="submit" class="btn btn-small btn-primary">Save</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">📅</div><h3>No appointments found</h3><p>Try a different filter or search term.</p></div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script type="application/json" id="dashboard-analytics">
+  {{ analytics | tojson | safe }}
+</script>
+<script>
+  const dashboardAnalytics = JSON.parse(document.getElementById('dashboard-analytics').textContent);
+
+  // Common chart options
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#E8E3D9' }, ticks: { color: '#6B6B6B', font: { family: 'Inter' } } },
+      x: { grid: { display: false }, ticks: { color: '#6B6B6B', font: { family: 'Inter' } } }
+    }
+  };
+
+  // Revenue line chart
+  new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+      labels: dashboardAnalytics.labels,
+      datasets: [{
+        data: dashboardAnalytics.revenues,
+        borderColor: '#1B4332',
+        backgroundColor: 'rgba(27, 67, 50, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#B7935F',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 8
+      }]
+    },
+    options: commonOptions
+  });
+
+  // Bookings bar chart
+  new Chart(document.getElementById('bookingsChart'), {
+    type: 'bar',
+    data: {
+      labels: dashboardAnalytics.labels,
+      datasets: [{
+        data: dashboardAnalytics.counts,
+        backgroundColor: '#B7935F',
+        borderRadius: 8,
+        borderSkipped: false,
+        maxBarThickness: 40
+      }]
+    },
+    options: commonOptions
+  });
+
+  // Status doughnut
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
+      datasets: [{
+        data: dashboardAnalytics.status_counts,
+        backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#EF4444'],
+        borderWidth: 0,
+        spacing: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#1A1A1A', font: { family: 'Inter', size: 13 }, padding: 16, usePointStyle: true, pointStyle: 'circle' }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

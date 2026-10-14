@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Book Appointment — {{ clinic.name }}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow reveal">Booking</span>
+    <h1 class="reveal">Reserve your <em>glow</em> session</h1>
+    <p class="lead reveal">Fill in the details below and we'll confirm your appointment within 24 hours.</p>
+  </div>
+</section>
+<section class="section">
+  <div class="container booking-container">
+    <form method="POST" action="{{ url_for('booking') }}" class="booking-form reveal" id="bookingForm">
+      <div class="form-section">
+        <h3 class="form-section-title"><span>1</span> Select a Service</h3>
+        <div class="service-select-grid">
+          {% for service in services %}
+          <label class="service-option">
+            <input type="radio" name="service" value="{{ service.name }}" {% if form_data.get('service') == service.name %}checked{% endif %} required>
+            <div class="service-option-inner">
+              <span class="service-option-icon">{{ service.icon }}</span>
+              <strong>{{ service.name }}</strong>
+              <small>{{ service.duration }} · ${{ service.price }}</small>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="form-section">
+        <h3 class="form-section-title"><span>2</span> Choose Date & Time</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="date">Preferred Date <span class="required">*</span></label>
+            <input type="date" id="date" name="date" required min="{{ now.strftime('%Y-%m-%d') }}" max="{{ (now + timedelta(days=90)).strftime('%Y-%m-%d') }}" value="{{ form_data.get('date', '') }}">
+            <p class="field-note">Closed Sundays. Max 90 days ahead.</p>
+          </div>
+          <div class="form-group">
+            <label for="time">Preferred Time <span class="required">*</span></label>
+            <select id="time" name="time" required>
+              <option value="">Select a time</option>
+              {% for slot in time_slots %}<option value="{{ slot }}" {% if form_data.get('time') == slot %}selected{% endif %}>{{ slot }}</option>{% endfor %}
+            </select>
+            <p class="field-note" id="availabilityNote"></p>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3 class="form-section-title"><span>3</span> Your Details</h3>
+        <div class="form-grid">
+          <div class="form-group"><label for="name">Full Name <span class="required">*</span></label><input type="text" id="name" name="name" required value="{{ form_data.get('name', '') }}" placeholder="Jane Doe"></div>
+          <div class="form-group"><label for="phone">Phone Number <span class="required">*</span></label><input type="tel" id="phone" name="phone" required value="{{ form_data.get('phone', '') }}" placeholder="+1 555 000 0000"></div>
+          <div class="form-group" style="grid-column: 1/-1;"><label for="email">Email Address</label><input type="email" id="email" name="email" value="{{ form_data.get('email', '') }}" placeholder="you@example.com"></div>
+          <div class="form-group" style="grid-column: 1/-1;"><label for="notes">Additional Notes</label><textarea id="notes" name="notes" rows="3" placeholder="Any skin concerns or special requests?">{{ form_data.get('notes', '') }}</textarea></div>
+        </div>
+      </div>
+      <div class="form-actions"><button type="submit" class="btn btn-primary btn-block-lg">Confirm Booking →</button></div>
+    </form>
+    <aside class="booking-info reveal">
+      <h3>What happens next?</h3>
+      <ol class="steps-list">
+        <li><span>1</span> We receive your request instantly.</li>
+        <li><span>2</span> Our team calls to confirm within 24 hours.</li>
+        <li><span>3</span> You receive a reference code for tracking.</li>
+        <li><span>4</span> Visit us and enjoy your treatment!</li>
+      </ol>
+      <div class="booking-help"><h4>Need help?</h4><p>Call us at <a href="tel:{{ clinic.phone | replace(' ', '') }}">{{ clinic.phone }}</a></p></div>
+    </aside>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/booking.js') }}"></script>{% endblock %}

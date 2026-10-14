@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero">
+  <div class="hero-bg"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+  <div class="container hero-inner">
+    <div class="hero-content reveal">
+      <span class="eyebrow">✦ Luxury Skin Care Since {{ clinic.established }}</span>
+      <h1>Your skin deserves <em>radiance</em>.</h1>
+      <p class="lead">Expert-led treatments, medical-grade technology, and a serene environment — all designed around you.</p>
+      <div class="hero-actions">
+        <a href="{{ url_for('booking') }}" class="btn btn-primary">Book Appointment</a>
+        <a href="{{ url_for('services') }}" class="btn btn-ghost">Explore Services →</a>
+      </div>
+      <div class="hero-meta">
+        <div><strong>4.9★</strong><span>From 500+ reviews</span></div>
+        <div><strong>10+ Yrs</strong><span>Of experience</span></div>
+        <div><strong>15k+</strong><span>Happy clients</span></div>
+      </div>
+    </div>
+    <div class="hero-visual reveal">
+      <div class="hero-card">
+        <div class="hero-card-glow"></div>
+        <span class="hero-card-tag">Open Today</span>
+        <h3>Glow Consultation</h3>
+        <p>Book a complimentary 15-minute skin analysis with our specialists.</p>
+        <div class="hero-card-footer"><span>From $75</span><a href="{{ url_for('booking') }}">Reserve →</a></div>
+      </div>
+      <div class="hero-float-card"><span>✨</span><div><strong>+2,400</strong><small>Treatments this year</small></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section stats-section">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item reveal"><strong data-count="15000">0</strong><span>Happy Clients</span></div>
+      <div class="stat-item reveal"><strong data-count="2400">0</strong><span>Treatments / Year</span></div>
+      <div class="stat-item reveal"><strong data-count="30">0</strong><span>Expert Specialists</span></div>
+      <div class="stat-item reveal"><strong data-count="12">0</strong><span>Awards Won</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal"><span class="eyebrow">Our Services</span><h2>Treatments crafted for <em>glowing</em> skin</h2><p>Each treatment is tailored to your unique skin concerns and goals.</p></div>
+    <div class="services-grid">
+      {% for service in services %}
+      <article class="service-card reveal">
+        <div class="service-icon">{{ service.icon }}</div>
+        <h3>{{ service.name }}</h3>
+        <p>{{ service.description }}</p>
+        <div class="service-meta"><span>{{ service.duration }}</span><strong>${{ service.price }}</strong></div>
+        <a href="{{ url_for('booking') }}?service={{ service.name | urlencode }}" class="service-link">Book This →</a>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="section-cta reveal"><a href="{{ url_for('services') }}" class="btn btn-outline">View All Services</a></div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head reveal"><span class="eyebrow">Why GlowSkin</span><h2>An experience, not just a treatment</h2></div>
+    <div class="features-grid">
+      <div class="feature-card reveal"><div class="feature-num">01</div><h3>Personalized Care</h3><p>Every visit starts with a thorough consultation. We design a plan around your skin.</p></div>
+      <div class="feature-card reveal"><div class="feature-num">02</div><h3>Expert Practitioners</h3><p>Licensed estheticians and dermatology-trained specialists with years of experience.</p></div>
+      <div class="feature-card reveal"><div class="feature-num">03</div><h3>Premium Products</h3><p>We use only medical-grade, dermatologist-tested products on every client.</p></div>
+      <div class="feature-card reveal"><div class="feature-num">04</div><h3>Calm Environment</h3><p>From arrival to aftercare, our clinic is designed to make you feel at ease.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal"><span class="eyebrow">Testimonials</span><h2>Loved by <em>thousands</em></h2></div>
+    <div class="testimonials">
+      <div class="testimonial reveal"><div class="stars">★★★★★</div><p>"I've struggled with acne for years. After just three sessions at GlowSkin, my skin has completely transformed."</p><div class="testimonial-author"><span class="avatar">SM</span><div><strong>Sarah M.</strong><small>Signature Glow Facial</small></div></div></div>
+      <div class="testimonial reveal"><div class="stars">★★★★★</div><p>"The most professional clinic I've ever visited. The staff truly cares about your results and comfort."</p><div class="testimonial-author"><span class="avatar">PK</span><div><strong>Priya K.</strong><small>Anti-Aging Ritual</small></div></div></div>
+      <div class="testimonial reveal"><div class="stars">★★★★★</div><p>"Beautiful space, amazing results. My skin has never looked better. Highly recommend!"</p><div class="testimonial-author"><span class="avatar">JL</span><div><strong>Jessica L.</strong><small>Hydrafacial Deluxe</small></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head reveal"><span class="eyebrow">Common Questions</span><h2>Everything you need to know</h2></div>
+    <div class="faq-list">
+      <details class="faq-item reveal" open><summary>How do I book an appointment?</summary><p>Simply click "Book Now" and fill out our online form. You'll receive a reference code and a confirmation call within 24 hours.</p></details>
+      <details class="faq-item reveal"><summary>What should I do before my appointment?</summary><p>Come with clean skin if possible, avoid heavy makeup, and stay hydrated. For peels, avoid sun exposure 48 hours prior.</p></details>
+      <details class="faq-item reveal"><summary>Can I cancel or reschedule?</summary><p>Yes! You can cancel up to 24 hours before your appointment through our "My Bookings" page or by calling us.</p></details>
+      <details class="faq-item reveal"><summary>Do you offer consultations?</summary><p>Yes, we offer complimentary 15-minute consultations. For detailed skin analysis, our 30-minute consultation starts at $75.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container"><div class="cta-banner reveal"><div><h2>Ready to glow?</h2><p>Book your appointment today and start your skin journey.</p></div><a href="{{ url_for('booking') }}" class="btn btn-light">Book Appointment</a></div></div>
+</section>
+{% endblock %}

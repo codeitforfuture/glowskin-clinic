@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Staff Login — {{ clinic.name }}{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container login-container">
+    <div class="login-card reveal">
+      <div class="login-icon">🔐</div>
+      <h1>Staff Login</h1>
+      <p class="login-sub">Sign in to manage appointment requests.</p>
+      <form method="POST" action="{{ url_for('admin_login') }}">
+        <div class="form-group"><label for="username">Username</label><input type="text" id="username" name="username" required autofocus placeholder="admin"></div>
+        <div class="form-group"><label for="password">Password</label><input type="password" id="password" name="password" required placeholder="••••••••"></div>
+        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+      </form>
+      <p class="login-note"><a href="{{ url_for('index') }}">← Back to website</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

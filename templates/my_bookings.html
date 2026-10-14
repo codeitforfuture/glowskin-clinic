@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}My Bookings — {{ clinic.name }}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow reveal">Patient Portal</span>
+    <h1 class="reveal">{% if logged_in %}Your <em>appointments</em>{% else %}Track your <em>booking</em>{% endif %}</h1>
+    <p class="lead reveal">
+      {% if logged_in %}All your bookings and their live status in one place.{% else %}Enter your reference code to see your booking status.{% endif %}
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% if logged_in %}
+      {% if appointments %}
+        <div class="bookings-list">
+          {% for appt in appointments %}
+          <div class="booking-card reveal">
+            <div class="booking-card-head">
+              <div>
+                <span class="ref-code">#{{ appt.reference_code }}</span>
+                <h3>{{ appt.service }}</h3>
+              </div>
+              <span class="status status-{{ appt.status }}">{{ appt.status | capitalize }}</span>
+            </div>
+            <div class="booking-card-body">
+              <div class="booking-detail"><span>📅</span><div><small>Date</small><strong>{{ appt.appointment_date }}</strong></div></div>
+              <div class="booking-detail"><span>🕐</span><div><small>Time</small><strong>{{ appt.appointment_time }}</strong></div></div>
+              <div class="booking-detail"><span>💼</span><div><small>For</small><strong>{{ appt.name }}</strong></div></div>
+            </div>
+            {% if appt.notes %}
+              <p class="booking-notes"><strong>Notes:</strong> {{ appt.notes }}</p>
+            {% endif %}
+            {% if appt.status in ['pending', 'confirmed'] %}
+            <form method="POST" action="{{ url_for('cancel_booking', appointment_id=appt.id) }}" class="booking-card-actions">
+              <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Cancel this appointment?')">Cancel Booking</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state reveal">
+          <div class="empty-icon">📅</div>
+          <h3>No bookings yet</h3>
+          <p>Ready for glowing skin? Book your first appointment today.</p>
+          <a href="{{ url_for('booking') }}" class="btn btn-primary" style="margin-top: 24px;">Book Appointment</a>
+        </div>
+      {% endif %}
+
+    {% else %}
+      <!-- Guest lookup -->
+      <form method="GET" action="{{ url_for('my_bookings') }}" class="search-form reveal">
+        <input type="text" name="ref" placeholder="Enter your reference code (GS-XXXXXX)..." value="{{ search_term }}" required>
+        <button type="submit" class="btn btn-primary">Search</button>
+      </form>
+
+      {% if searched and appointment %}
+        <div class="booking-card reveal" style="max-width: 700px; margin: 40px auto 0;">
+          <div class="booking-card-head">
+            <div>
+              <span class="ref-code">#{{ appointment.reference_code }}</span>
+              <h3>{{ appointment.service }}</h3>
+            </div>
+            <span class="status status-{{ appointment.status }}">{{ appointment.status | capitalize }}</span>
+          </div>
+          <div class="booking-card-body">
+            <div class="booking-detail"><span>📅</span><div><small>Date</small><strong>{{ appointment.appointment_date }}</strong></div></div>
+            <div class="booking-detail"><span>🕐</span><div><small>Time</small><strong>{{ appointment.appointment_time }}</strong></div></div>
+            <div class="booking-detail"><span>👤</span><div><small>Name</small><strong>{{ appointment.name }}</strong></div></div>
+          </div>
+        </div>
+      {% elif not searched %}
+        <div class="empty-state reveal" style="margin-top: 40px;">
+          <div class="empty-icon">🔍</div>
+          <h3>Track your booking</h3>
+          <p>Enter the reference code we sent you to see live status.</p>
+          <div style="margin-top: 24px;">
+            <a href="{{ url_for('user_login') }}" class="btn btn-outline btn-small">Login for full history</a>
+            <a href="{{ url_for('user_signup') }}" class="btn btn-primary btn-small">Create Account</a>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
