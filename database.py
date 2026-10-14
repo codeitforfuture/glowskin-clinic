@@ -1,109 +1,99 @@
-import sqlite3
 import os
+import sqlite3
 
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'data', 'clinic.db')
+DATABASE_URL = os.environ.get('DATABASE_URL')
+IS_POSTGRES = DATABASE_URL is not None
+
+
+class DBWrapper:
+    """Wraps SQLite or PostgreSQL so app.py uses the same code for both."""
+    def __init__(self, conn, is_postgres):
+        self.conn = conn
+        self.is_postgres = is_postgres
+
+    def execute(self, sql, params=None):
+        if self.is_postgres:
+            sql = sql.replace('?', '%s')
+        cur = self.conn.cursor()
+        if params is not None:
+            cur.execute(sql, params)
+        else:
+            cur.execute(sql)
+        return cur
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.conn.close()
 
 
 def get_db_connection():
-    os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def _table_columns(conn, table):
-    """Get list of column names for a table."""
-    try:
-        rows = conn.execute(f'PRAGMA table_info({table})').fetchall()
-        return [r['name'] for r in rows]
-    except Exception:
-        return []
-
-
-def _table_exists(conn, table):
-    row = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-        (table,)
-    ).fetchone()
-    return row is not None
+    if IS_POSTGRES:
+        import psycopg2
+        import psycopg2.extras
+        url = DATABASE_URL
+        if url.startswith('postgres://'):
+            url = url.replace('postgres://', 'postgresql://', 1)
+        conn = psycopg2.connect(url, cursor_factory=psycopg2.extras.DictCursor)
+        return DBWrapper(conn, True)
+    else:
+        db_path = os.path.join(os.path.dirname(__file__), 'data', 'clinic.db')
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        return DBWrapper(conn, False)
 
 
 def init_db():
     conn = get_db_connection()
 
-    # ---- USERS TABLE ----
-    if not _table_exists(conn, 'users'):
-        conn.execute('''
-            CREATE TABLE users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                phone TEXT NOT NULL,
-                password_hash TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-    conn.commit()
+    users_id = 'SERIAL PRIMARY KEY' if IS_POSTGRES else 'INTEGER PRIMARY KEY AUTOINCREMENT'
+    appt_id = 'SERIAL PRIMARY KEY' if IS_POSTGRES else 'INTEGER PRIMARY KEY AUTOINCREMENT'
 
-    # ---- APPOINTMENTS TABLE ----
-    if not _table_exists(conn, 'appointments'):
-        conn.execute('''
-            CREATE TABLE appointments (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                reference_code TEXT UNIQUE,
-                user_id INTEGER,
-                name TEXT NOT NULL,
-                phone TEXT NOT NULL,
-                email TEXT,
-                service TEXT NOT NULL,
-                appointment_date TEXT NOT NULL,
-                appointment_time TEXT NOT NULL,
-                notes TEXT,
-                status TEXT NOT NULL DEFAULT 'pending',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        ''')
-        conn.commit()
-    else:
-        # Auto-migrate: add missing columns if they don't exist
-        existing_cols = _table_columns(conn, 'appointments')
-        migrations = [
-            ('reference_code', 'ALTER TABLE appointments ADD COLUMN reference_code TEXT'),
-            ('user_id',        'ALTER TABLE appointments ADD COLUMN user_id INTEGER'),
-            ('email',          'ALTER TABLE appointments ADD COLUMN email TEXT'),
-            ('notes',          'ALTER TABLE appointments ADD COLUMN notes TEXT'),
-        ]
-        for col_name, sql in migrations:
-            if col_name not in existing_cols:
-                try:
-                    conn.execute(sql)
-                    print(f"✅ Migrated: added column '{col_name}' to appointments table")
-                except Exception as e:
-                    print(f"⚠️ Migration skipped ({col_name}): {e}")
+    conn.execute(f'''
+        CREATE TABLE IF NOT EXISTS users (
+            id {users_id},
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            phone TEXT NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
 
-        # Backfill reference codes for old rows that don't have one
+    conn.execute(f'''
+        CREATE TABLE IF NOT EXISTS appointments (
+            id {appt_id},
+            reference_code TEXT UNIQUE,
+            user_id INTEGER,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            email TEXT,
+            service TEXT NOT NULL,
+            appointment_date TEXT NOT NULL,
+            appointment_time TEXT NOT NULL,
+            notes TEXT,
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Auto-migrate: add missing columns for older SQLite databases
+    if not IS_POSTGRES:
         try:
-            rows = conn.execute(
-                "SELECT id FROM appointments WHERE reference_code IS NULL"
-            ).fetchall()
-            import random, string
-            for r in rows:
-                ref = 'GS-' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-                conn.execute(
-                    "UPDATE appointments SET reference_code = ? WHERE id = ?",
-                    (ref, r['id'])
-                )
-            if rows:
-                print(f"✅ Backfilled {len(rows)} reference codes")
+            cols = [r['name'] for r in conn.execute("PRAGMA table_info(appointments)").fetchall()]
+            if 'reference_code' not in cols:
+                conn.execute('ALTER TABLE appointments ADD COLUMN reference_code TEXT')
+            if 'user_id' not in cols:
+                conn.execute('ALTER TABLE appointments ADD COLUMN user_id INTEGER')
+            if 'email' not in cols:
+                conn.execute('ALTER TABLE appointments ADD COLUMN email TEXT')
+            if 'notes' not in cols:
+                conn.execute('ALTER TABLE appointments ADD COLUMN notes TEXT')
         except Exception as e:
-            print(f"⚠️ Backfill skipped: {e}")
+            print(f"Migration note: {e}")
 
-        conn.commit()
-
+    conn.commit()
     conn.close()
     print("✅ Database ready.")
-
-
-if __name__ == '__main__':
-    init_db()
